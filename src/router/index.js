@@ -10,8 +10,8 @@ const routes = [
     component: Home,
   },
   {
-    path: '/jymcircle',
-    name: 'jymcircle',
+    path: '/circle',
+    name: 'circle',
     component: JymCircle,
   },
 ];

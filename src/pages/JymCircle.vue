@@ -5,6 +5,9 @@
         style="padding: 0px; margin: 0px; border: 0px; background: transparent; width: 856.008px; height: 856.008px; display: block;"></canvas>
     </div>
     <div class="operation-container">
+      <div class="btn-home">
+        <a-button @click="router.push('/')">Home</a-button>
+      </div>
       <div class="btn-groups">
         <a-button @click="handleReset">Reset</a-button>
         <a-button @click="handleDownload">Download</a-button>
@@ -33,8 +36,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watchEffect } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, reactive, computed, onMounted, watchEffect } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import html2canvas from 'html2canvas';
 
 import { getUserList } from '../api/user';
@@ -47,12 +50,19 @@ const userlist = reactive([]);
 const collapseActiveKey = ref(['1']);
 const bgColor = ref('#1e80ff');
 const router = useRouter();
+const route = useRoute();
+
+const userinfo = computed(() => {
+  return userlist.find(user => user.user_id === route.query.user_id);
+});
 
 onMounted(async () => {
   const info = {
     "user_id": "1415826708904488",
-    "type": "followees"
+    "type": "followers"
   };
+  const { user_id } = route.query;
+  info.user_id = user_id;
   const userlist_res = await getUserList(info);
   userlist.push(...userlist_res);
   setTimeout(() => {
@@ -140,6 +150,12 @@ function handleReset () {
 
     div + div {
       margin-top: 20px;
+    }
+    .btn-home {
+      text-align: center;
+      .ant-btn {
+        width: 88%;
+      }
     }
     .btn-groups {
       display: flex;
