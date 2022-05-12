@@ -44,6 +44,7 @@ import { getUserList } from '../api/user';
 import {
   setBackground,
   drawCircleImage,
+  drawFont,
 } from '../utils/canvas';
 
 const userlist = reactive([]);
@@ -82,6 +83,7 @@ watchEffect(
 function draw () {
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
+  const { width, height } = ctx.canvas;
 
   // 设置背景色
   setBackground(ctx, bgColor.value);
@@ -93,6 +95,8 @@ function draw () {
     drawCircleImage(ctx, 40, 40, 40, img);
   };
   img.src = 'https://p6-passport.byteacctimg.com/img/mosaic-legacy/3791/5070639578~300x300.image';
+
+  drawFont(ctx, 20, height - 20, 'jym.cellinlab.xyz', bgColor.value);
 }
 function handleDownload () {
   const canvas = document.getElementById('canvas');

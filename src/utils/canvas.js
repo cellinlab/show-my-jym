@@ -27,7 +27,21 @@ function setBackground (ctx, color) {
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }
 
+function drawFont (ctx, x, y, text, bgColor, font = '45px "微软雅黑"', color = '#ffffff') {
+  ctx.save();
+
+  ctx.font = font;
+  ctx.fillStyle = color;
+  if (bgColor == color) {
+    ctx.fillStyle = '#000000';
+  }
+  ctx.fillText(text, x, y);
+
+  ctx.restore();
+}
+
 export {
   drawCircleImage,
   setBackground,
+  drawFont,
 };
