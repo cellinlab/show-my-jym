@@ -6,11 +6,11 @@
     </div>
     <div class="operation-container">
       <div class="btn-home">
-        <a-button @click="router.push('/')">Home</a-button>
+        <a-button type="primary" @click="router.push('/')">Home</a-button>
       </div>
       <div class="btn-groups">
-        <a-button @click="handleReset">Reset</a-button>
-        <a-button @click="handleDownload">Download</a-button>
+        <a-button type="primary" @click="handleReset">Reset</a-button>
+        <a-button type="primary" @click="handleDownload">Download</a-button>
       </div>
       <div class="sponor-tips">
         <p>JYM 由个人开发运维。如果喜欢这个应用的话，欢迎<a href="https://www.cellinlab.xyz/" target="_blank">送杯奶茶☕</a>支持下开发者💗</p>
@@ -45,7 +45,9 @@ import {
   setBackground,
   drawCircleImage,
   drawFont,
+  loadImage,
 } from '../utils/canvas';
+import { getCirclePoints } from '../utils/polygon';
 
 const userlist = reactive([]);
 const collapseActiveKey = ref(['1']);
@@ -80,22 +82,39 @@ watchEffect(
   }
 );
 
-function draw () {
+async function draw () {
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   const { width, height } = ctx.canvas;
 
   // 设置背景色
   setBackground(ctx, bgColor.value);
-  
-  const img = new Image(100, 100);
-  img.style = 'border-radius: 50%;';
-  img.setAttribute('crossOrigin', 'anonymous');
-  img.onload = () => {
-    drawCircleImage(ctx, 40, 40, 40, img);
-  };
-  img.src = 'https://p6-passport.byteacctimg.com/img/mosaic-legacy/3791/5070639578~300x300.image';
 
+  // 用户在中心
+  if (userinfo.value) {
+    ctx.save();
+    const { width, height } = ctx.canvas;
+    // 转换坐标
+    ctx.translate(width / 2, height / 2);
+
+    const { avatar_large } = userinfo.value;
+    const img = await loadImage(avatar_large);
+    drawCircleImage(ctx, 0, 0, 40, img);
+
+    const circlePoints = getCirclePoints({x: 0, y: 0}, 200, 12);
+    // 关注列表环绕
+    for (let i = 1; i < userlist.length; i++) {
+      const { avatar_large } = userlist[i];
+      if (avatar_large.includes('passport')) {
+        const {x, y} = circlePoints.pop();
+        console.log(x, y);
+        const img = await loadImage(avatar_large);
+        drawCircleImage(ctx, x, y, 40, img);
+      }
+    }
+    ctx.restore();
+  }
+  
   drawFont(ctx, 20, height - 20, 'jym.cellinlab.xyz', bgColor.value);
 }
 function handleDownload () {
