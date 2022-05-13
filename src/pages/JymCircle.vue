@@ -17,8 +17,14 @@
       </div>
       <div class="custom-options">
         <a-collapse  v-model:activeKey="collapseActiveKey">
-          <a-collapse-panel key="1" header="Customise colours">
+          <a-collapse-panel key="1" header="Customise options">
             背景颜色：<input type="color" :value="bgColor" @change="handleBgColorChange" />
+            <br />
+            类型：
+            <a-radio-group v-model:value="user_type">
+              <a-radio :value="'followees'">我关注</a-radio>
+              <a-radio :value="'followers'">关注我</a-radio>
+            </a-radio-group>
           </a-collapse-panel>
           <a-collapse-panel key="2" header="Who's in my circles?">
             <div class="user-url-list">
@@ -36,9 +42,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watchEffect } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import html2canvas from 'html2canvas';
+import { message } from 'ant-design-vue';
 
 import { getUserList } from '../api/user';
 import {
@@ -52,6 +59,7 @@ import { getCirclePoints } from '../utils/polygon';
 const userlist = reactive([]);
 const collapseActiveKey = ref(['1']);
 const bgColor = ref('#1e80ff');
+const user_type = ref('followees');
 const router = useRouter();
 const route = useRoute();
 
@@ -59,30 +67,38 @@ const userinfo = computed(() => {
   return userlist.find(user => user.user_id === route.query.user_id);
 });
 
-onMounted(async () => {
+onMounted(() => {
+  loadData();
+});
+
+watch(userlist, (newValue, oldValue) => {
+  if (newValue.length > 0) {
+    draw();
+  }
+});
+watch(user_type, (newValue, oldValue) => {
+  if (newValue !== oldValue) {
+    loadData();
+  }
+});
+
+
+async function loadData() {
   const info = {
     "user_id": "1415826708904488",
-    "type": "followers"
+    "type": user_type.value,
   };
   const { user_id } = route.query;
   info.user_id = user_id;
+  const requestMessage = message.loading('Data loading...', 0);
   const userlist_res = await getUserList(info);
   userlist.push(...userlist_res);
-  setTimeout(() => {
-    draw();
-  }, 1000);
-});
-
-watchEffect(
-  () => {
-    draw();
-  },
-  {
-    flush: 'post',
-  }
-);
+  requestMessage();
+}
 
 async function draw () {
+  const hideMessage = message.loading('Data rendering...', 0);
+  
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   const { width, height } = ctx.canvas;
@@ -99,15 +115,21 @@ async function draw () {
 
     const { avatar_large } = userinfo.value;
     const img = await loadImage(avatar_large);
-    drawCircleImage(ctx, 0, 0, 40, img);
+    drawCircleImage(ctx, 0, 0, 60, img);
 
-    const circlePoints = getCirclePoints({x: 0, y: 0}, 200, 12);
+    let circle_radius = 120;
+    let circle_num = 1;
+    let user_count = 8;
+    let circlePoints = getCirclePoints({x: 0, y: 0}, circle_radius, circle_num * user_count);
     // 关注列表环绕
     for (let i = 1; i < userlist.length; i++) {
       const { avatar_large } = userlist[i];
       if (avatar_large.includes('passport')) {
+        if (circlePoints.length == 0) {
+          circle_num++;
+          circlePoints = getCirclePoints({x: 0, y: 0}, circle_radius + (circle_num -1) * 100, circle_num * user_count - circle_num);
+        }
         const {x, y} = circlePoints.pop();
-        console.log(x, y);
         const img = await loadImage(avatar_large);
         drawCircleImage(ctx, x, y, 40, img);
       }
@@ -116,6 +138,7 @@ async function draw () {
   }
   
   drawFont(ctx, 20, height - 20, 'jym.cellinlab.xyz', bgColor.value);
+  hideMessage();
 }
 function handleDownload () {
   const canvas = document.getElementById('canvas');
