@@ -14,6 +14,10 @@
       </div>
       <div class="sponor-tips">
         <p>JYM 由个人开发运维。如果喜欢这个应用的话，欢迎<a href="https://www.cellinlab.xyz/" target="_blank">送杯奶茶☕</a>支持下开发者💗</p>
+        <div class="img-wrapper">
+          <img src="https://www.cellinlab.xyz/img/qrcode.8cdac537.jpg" alt="">
+        </div>
+        <p>微信扫码关注，回复“JYM”，获取源码</p>
       </div>
       <div class="custom-options">
         <a-collapse  v-model:activeKey="collapseActiveKey">
@@ -214,6 +218,13 @@ function handleReset () {
       padding: 10px;
       border: 1px solid #fff;
       border-radius: 10px;
+      .img-wrapper {
+        text-align: center;
+        margin: 10px;
+        img {
+          width: 75%;
+        }
+      }
       a {
         color: #4495ff;
       }
